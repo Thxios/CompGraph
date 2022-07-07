@@ -4,6 +4,8 @@ from ops.dynamic_graph import Tensor
 from ops.dg_ops import apply_fn as _apply_fn, add, const_add, sub, const_sub, const_rsub, mul, const_mul, \
     div, const_div, const_rdiv, neg, matmul, reshape
 
+from ops.conv_util import conv2d
+
 
 def apply_fn(fn, *inputs, **kwargs):
     # print(fn, inputs)
@@ -77,7 +79,8 @@ def t_reshape(x, shape):
     return apply_fn(reshape, x, shape)
 
 def relu(x):
-    pos = (x >= 0).astype(float)
+    # pos = (x >= 0).astype(np.float32)
+    pos = (x >= 0).astype(np.float32)
     y = x * pos
 
     def grad_fn(dy):
@@ -87,6 +90,28 @@ def relu(x):
 
 def t_relu(x):
     return apply_fn(relu, x)
+
+def sigmoid(x):
+    y = 1 / (1 + np.exp(-x))
+
+    def grad_fn(dy):
+        return dy * y * (1-y)
+
+    return y, grad_fn
+
+def t_sigmoid(x):
+    return apply_fn(sigmoid, x)
+
+def tanh(x):
+    y = np.tanh(x)
+
+    def grad_fn(dy):
+        return dy * (1-y**2)
+
+    return y, grad_fn
+
+def t_tanh(x):
+    return apply_fn(tanh, x)
 
 def _softmax(x, axis=-1):
     e_x = np.exp(x - np.max(x, axis=axis, keepdims=True))
@@ -107,7 +132,7 @@ def softmax_crossentropy(logit, label):
     _pred = prob[np.arange(prob.shape[0]), label]
     # print('pred', _pred)
     # print()
-    ce = -np.sum(np.log(_pred))
+    ce = -np.sum(np.log(_pred + 1e-8))
 
     def grad_fn(dy):
         return dy * (prob - _one_hot(label))
@@ -116,6 +141,9 @@ def softmax_crossentropy(logit, label):
 
 def t_softmax_crossentropy(logit, label):
     return apply_fn(softmax_crossentropy, logit, label)
+
+def t_conv2d(x, kernel, stride=1, pad=0):
+    return apply_fn(conv2d, x, kernel, stride=stride, pad=pad)
 
 
 if __name__ == '__main__':
