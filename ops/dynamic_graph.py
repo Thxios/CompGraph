@@ -10,13 +10,17 @@ def _as_iterable(obj):
 
 def _as_array(value):
     if not isinstance(value, np.ndarray):
-        value = np.array(value, dtype=float)
+        value = np.array(value, dtype=np.float32)
+    else:
+        value = value.astype(dtype=np.float32)
     return value
 
 
 def _reduce_grad(value, shape):
     if value.shape != shape:
-        value = np.sum(value, axis=0)
+        not_same = len(value.shape) - len(shape)
+        assert not_same >= 1
+        value = np.sum(value, axis=tuple(range(not_same)))
     return value
 
 
@@ -38,6 +42,10 @@ class Tensor:
 
     def __repr__(self):
         return f'T[{self.value}]'
+
+    @property
+    def shape(self):
+        return self._value.shape
 
     @property
     def value(self):
@@ -78,7 +86,7 @@ class Tensor:
         # print('grad', self, gradient, self.grad_fn)
 
         if gradient is None:
-            gradient = np.ones_like(self.value, dtype=float)
+            gradient = np.ones_like(self.value, dtype=np.float32)
         else:
             gradient = _reduce_grad(gradient, self._value.shape)
 

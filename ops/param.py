@@ -20,8 +20,20 @@ class Parameter(Tensor):
         self._value += delta
 
     @staticmethod
-    def random_normal(shape, mean=0., stddev=0.02, **kwargs):
-        arr = np.random.normal(mean, stddev, shape)
+    def zeros(shape, **kwargs):
+        arr = np.zeros(shape, dtype=np.float32)
+        return Parameter(arr, **kwargs)
+
+
+    @staticmethod
+    def random_normal(shape, stddev=0.02, **kwargs):
+        arr = np.random.normal(0, stddev, shape).astype(np.float32)
+        return Parameter(arr, **kwargs)
+
+    @staticmethod
+    def he_initialization(shape, fan_in, **kwargs):
+        stddev = np.sqrt(2 / fan_in)
+        arr = np.random.normal(0, stddev, shape).astype(np.float32)
         return Parameter(arr, **kwargs)
 
 

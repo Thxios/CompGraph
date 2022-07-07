@@ -31,10 +31,10 @@ class Adam(Optimizer):
         self.epsilon = epsilon
 
         self.m = {
-            id(param): np.zeros_like(param.value) for param in params
+            id(param): np.zeros_like(param.value, dtype=np.float32) for param in params
         }
         self.v = {
-            id(param): np.zeros_like(param.value) for param in params
+            id(param): np.zeros_like(param.value, dtype=np.float32) for param in params
         }
         self.t = {
             id(param): 0 for param in params
